@@ -276,40 +276,29 @@ class Collection(APIMixin):
         return qs
 
     def user_ids_for_object(self, obj):
-        """Find user IDs related to object/pk in queryset."""
-        qs = self.queryset
-        if self.user_rel:
-            user_ids = set()
-            if obj.pk is None:
-                return user_ids  # nobody can see objects that don't exist
-            user_rels = self.user_rel
-            if isinstance(user_rels, basestring):
-                user_rels = [user_rels]
-            user_rel_map = {
-                '_user_rel_%d' % index: ArrayAgg(user_rel)
-                for index, user_rel
-                in enumerate(user_rels)
-            }
+       """Find user IDs related to object/pk in queryset."""
+       qs = self.queryset
 
-            if self.always_allow_superusers:
-                user_ids.update(
-                    self.user_model.objects.filter(
-                        is_superuser=True, is_active=True,
-                    ).values_list('pk', flat=True)
-                )
+       if self.user_rel:
+           user_ids = set()
+           if obj.pk is None:
+               return user_ids
 
-            for rel_user_ids in qs.filter(
-                    pk=obj.pk,
-            ).annotate(
-                **user_rel_map
-            ).values_list(
-                *user_rel_map.keys()
-            ).get():
-                user_ids.update(rel_user_ids)
-            user_ids.difference_update([None])
-            return user_ids
-        else:
-            return None
+           user_rels = self.user_rel
+           if isinstance(user_rels, basestring):
+               user_rels = [user_rels]
+
+           user_ids = []
+
+           if self.always_allow_superusers:
+               user_ids.extend(self.user_model.objects.filter(is_superuser=True, is_active=True).values_list('pk', flat=True))
+
+           for user_rel in user_rels:
+               user_ids.extend(qs.filter(pk=obj.id).values_list(user_rel, flat=True))
+
+           return set(user_ids)
+       else:
+           return None
 
     def field_schema(self):
         """Generate schema for consumption by clients."""
