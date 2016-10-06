@@ -2,6 +2,10 @@
 Django DDP
 ==========
 
+**Warning!**
+This fork is unmaintained. Please use github.com/jazzband/django-ddp.
+
+
 `Django DDP`_ is a Django_/PostgreSQL_ implementation of the Meteor DDP
 server,  allowing Meteor_ to subscribe to changes on Django_ models.
 Released under the MIT license.
