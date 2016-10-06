@@ -296,7 +296,8 @@ class Collection(APIMixin):
            for user_rel in user_rels:
                user_ids.extend(qs.filter(pk=obj.id).values_list(user_rel, flat=True))
 
-           return set(user_ids)
+           user_ids = set([x for x in user_ids if x is not None])
+           return user_ids
        else:
            return None
 
